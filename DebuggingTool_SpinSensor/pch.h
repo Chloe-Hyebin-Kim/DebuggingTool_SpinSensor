@@ -44,9 +44,9 @@ using namespace std;
 
 #define MAXLOGSIZE 1024
 
-#define MAIN_FRAME	"Camera View"
-
 #define MAX_FILES 2
+#define IMG_NUM 5
+#define TIMERSEC 1000 //0.5초
 
 #define MAXBALLRADIUS 120
 #define MINBALLRADIUS 35

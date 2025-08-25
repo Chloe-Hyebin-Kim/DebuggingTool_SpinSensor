@@ -35,27 +35,31 @@ protected:
 public:
 
 private:
+	void LoadMat(int idx);
+	void LoadImages(int idx);
+	void MakeWideImageFromSingle(int idx);
+	void PasteImageAt(CImage& dstImg, const CImage& srcImg, int dstX, int dstY);
+	void PasteImage(const CImage& srcImg, int idx, int cnt);
+	void PasteMat(const cv::Mat& srcImg, int idx);
+
 	void CreateBitmapInfo(int w, int h, int bpp); // Bitmap 정보를 생성하는 함수.
 	void DisplayImage(int IDC_PICTURE_TARGET, Mat targetMat);
-
 	BITMAPINFO* m_pBitmapInfo; // Bitmap 정보를 담고 있는 구조체.
 
-	CString m_strFilePath1;
-	CString m_strFilePath2;
-	CString m_strFileName1;
-	CString m_strFileName2;
+	cv::Mat m_arrWideMat[2];
+	CImage m_arrWideImages[2];
+	CImage m_arrImages[2];
+	CString m_strFilePath[2];
+	CString m_strFileName[2];
+	bool m_bLoad[2];
 
-	Mat m_matImage1; // 이미지 정보를 담고 있는 객체.
-	Mat m_matImage2; // 이미지 정보를 담고 있는 객체.
-	CImage m_image1;
-	CImage m_image2;
-
-	CImage m_Images[2];
-	int m_i32ImageIdx = 0; // 0 또는 1
+	int m_ImgIndex = 0; // 0 또는 1
 	bool m_bShowAlternating = false; // false: 멈춤, true: 실행 중
 
-	int m_i32PicFrameX;
-	int m_i32PicFrameY;
+	int m_i32FrameX;
+	int m_i32FrameY;
+	//int m_i32ImageX;
+	//int m_i32ImageY;
 
 protected:
 	afx_msg void OnDestroy();
