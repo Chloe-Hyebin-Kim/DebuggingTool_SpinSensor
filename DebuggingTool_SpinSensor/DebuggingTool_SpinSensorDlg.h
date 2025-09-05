@@ -37,10 +37,14 @@ public:
 private:
 	void LoadMat(int idx);
 	void LoadImages(int idx);
+	void LoadSingleImages(int idx);
+	void LoadMultiImages(int idx);
 	void MakeWideImageFromSingle(int idx);
 	void PasteImageAt(CImage& dstImg, const CImage& srcImg, int dstX, int dstY);
 	void PasteImage(const CImage& srcImg, int idx, int cnt);
 	void PasteMat(const cv::Mat& srcImg, int idx);
+
+	void CheckLoadImages();
 
 	void CreateBitmapInfo(int w, int h, int bpp); // Bitmap 정보를 생성하는 함수.
 	void DisplayImage(int IDC_PICTURE_TARGET, Mat targetMat);
@@ -55,11 +59,12 @@ private:
 
 	int m_ImgIndex = 0; // 0 또는 1
 	bool m_bShowAlternating = false; // false: 멈춤, true: 실행 중
+	bool m_bSingleMode = false; // 이미지 5개 복사할지 안할지
 
 	int m_i32FrameX;
 	int m_i32FrameY;
-	//int m_i32ImageX;
-	//int m_i32ImageY;
+
+	CPoint m_ImgPos;//이미지 그릴 죄상단 좌표
 
 protected:
 	afx_msg void OnDestroy();
@@ -72,4 +77,6 @@ protected:
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton3();
 	afx_msg void OnBnClickedButton4();
+public:
+	afx_msg void OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
 };

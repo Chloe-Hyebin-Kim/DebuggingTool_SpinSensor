@@ -77,6 +77,7 @@ BEGIN_MESSAGE_MAP(CDebuggingToolSpinSensorDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON3, &CDebuggingToolSpinSensorDlg::OnBnClickedButton3)
 	ON_BN_CLICKED(IDC_BUTTON4, &CDebuggingToolSpinSensorDlg::OnBnClickedButton4)
 
+	ON_WM_KEYUP()
 END_MESSAGE_MAP()
 
 
@@ -114,7 +115,9 @@ BOOL CDebuggingToolSpinSensorDlg::OnInitDialog()
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	for (int i = 0; i < MAX_FILES; i++)
 	{
-		//m_arrImages[i];
+		m_arrImages[i].Create( BALL_IMAGE_WIDTH, BALL_IMAGE_HEIGHT, 32);
+		m_arrWideImages[i].Create(MAXIMAGECOUNT * BALL_IMAGE_WIDTH, BALL_IMAGE_HEIGHT, 32);
+
 		m_strFilePath[i] = "";
 		m_strFileName[i] = "";
 		m_bLoad[i] = false;
@@ -126,6 +129,8 @@ BOOL CDebuggingToolSpinSensorDlg::OnInitDialog()
 	m_i32FrameY = rect.Height();
 
 	m_ImgIndex = -1;
+
+	GetDlgItem(IDC_BUTTON1)->EnableWindow((m_bLoad[0] & m_bLoad[1]));
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -168,9 +173,10 @@ void CDebuggingToolSpinSensorDlg::OnPaint()
 	{
 		if (m_bLoad[0] && m_bLoad[1])
 		{
-			int x = (m_i32FrameX * 0.5) - (m_arrImages[m_ImgIndex].GetWidth() * 0.5);
-			int y = (m_i32FrameY * 0.5) - (m_arrImages[m_ImgIndex].GetHeight() * 0.5);
-			m_arrImages[m_ImgIndex].Draw(dc.GetSafeHdc(), x, y);
+			//int x = (m_i32FrameX * 0.5) - (BALL_IMAGE_WIDTH * 0.5);
+			//int y = (m_i32FrameY * 0.5) - (BALL_IMAGE_HEIGHT * 0.5);
+			//m_arrImages[m_ImgIndex].Draw(dc.GetSafeHdc(), x, y);
+			m_arrImages[m_ImgIndex].Draw(dc.GetSafeHdc(), m_ImgPos.x, m_ImgPos.y);
 		}
 	}
 
@@ -195,6 +201,7 @@ void CDebuggingToolSpinSensorDlg::OnDestroy()
 	{
 		m_arrWideMat[i].release();
 		m_arrImages[i].Destroy();
+		m_arrWideImages[i].Destroy();
 		m_strFilePath[i] = "";
 		m_strFileName[i] = "";
 		m_bLoad[i] = false;
@@ -440,54 +447,103 @@ void CDebuggingToolSpinSensorDlg::LoadImages(int idx)
 		// OnPaint 호출 트리거
 		//Invalidate();
 	}
+
+	CheckLoadImages();
 }
 
+void CDebuggingToolSpinSensorDlg::LoadSingleImages(int idx)
+{
+	static TCHAR BASED_CODE szFilter[] = _T("Image Files (*.bmp;*.jpg;*.png)|*.bmp;*.jpg;*.png|All Files (*.*)|*.*||");
+	CFileDialog dlg(TRUE, _T("jpg"), NULL, OFN_ALLOWMULTISELECT | OFN_FILEMUSTEXIST, szFilter, this);
+	if (IDOK == dlg.DoModal())
+	{
+		m_strFilePath[idx] = dlg.GetPathName();
+		m_strFileName[idx] = dlg.GetFileName();
+
+		SetDlgItemText((IDC_TEXT1 + idx), m_strFileName[idx]);
+		m_arrImages[idx].Destroy(); // 기존 이미지 해제
+		if (FAILED(m_arrImages[idx].Load(m_strFilePath[idx])))// 이미지 로드
+		{
+			m_bLoad[idx] = false;
+			AfxMessageBox(_T("이미지 로드 실패"));
+			return;
+		}
+		m_bLoad[idx] = true;
+
+
+		// OnPaint 호출 트리거
+		//Invalidate();
+	}
+}
+
+void CDebuggingToolSpinSensorDlg::LoadMultiImages(int idx)
+{
+
+}
+
+void CDebuggingToolSpinSensorDlg::CheckLoadImages()
+{
+	GetDlgItem(IDC_BUTTON1)->EnableWindow((m_bLoad[0] & m_bLoad[1]));
+
+	if (m_bLoad[0] && m_bLoad[1])
+	{
+		CRect rect;
+		GetDlgItem(IDC_STATIC_PIC)->GetWindowRect(&rect);
+		ScreenToClient(&rect);
+
+		m_ImgPos = CPoint(rect.CenterPoint().x - (m_arrImages[0].GetWidth() * 0.5), (rect.CenterPoint().y) - (m_arrImages[0].GetHeight() * 0.5));
+
+
+
+		//m_i32ImageX = (rect.CenterPoint().x) - (m_arrImages[0].GetWidth() * 0.5);
+		//m_i32ImageY = (rect.CenterPoint().y) - (m_arrImages[0].GetHeight() * 0.5);
+
+		// OnPaint 호출 트리거
+		Invalidate();
+	}
+}
 
 void CDebuggingToolSpinSensorDlg::OnBtnClickedFile1()
 {
 	const int idx = 0;
 	LoadImages(idx);
 
-	const int count = 5;
-	for (int i = 0; i < count; ++i)
+	/*if (false==m_bSingleMode)
 	{
-		PasteImage(m_arrImages[idx], idx, i);
-	}
+
+		const int count = 5;
+		int totalWidth = MAXIMAGECOUNT * BALL_IMAGE_WIDTH;
+		m_arrWideImages[idx].Create(MAXIMAGECOUNT * BALL_IMAGE_WIDTH, BALL_IMAGE_HEIGHT, 32);
 
 
-	//static TCHAR BASED_CODE szFilter[] = _T("Image Files (*.bmp;*.jpg;*.png)|*.bmp;*.jpg;*.png|All Files (*.*)|*.*||");
-	//CFileDialog dlg(TRUE, _T("jpg"), NULL, OFN_ALLOWMULTISELECT | OFN_FILEMUSTEXIST, szFilter, this);
-	//if (IDOK == dlg.DoModal())
-	//{
-	//	m_strFilePath[idx] = dlg.GetPathName();
-	//	m_strFileName[idx] = dlg.GetFileName();
+		for (int i = 0; i < count; ++i)
+		{
+			PasteImage(m_arrImages[idx], idx, i);
+		}
 
-	//	SetDlgItemText((IDC_TEXT1 + idx), m_strFileName[idx]);
-	//	m_arrImages[idx].Destroy(); // 기존 이미지 해제
-	//	if (FAILED(m_arrImages[idx].Load(m_strFilePath[idx])))// 이미지 로드
-	//	{
-	//		m_bLoad[idx] = false;
-	//		AfxMessageBox(_T("이미지 로드 실패"));
-	//		return;
-	//	}
-	//	m_bLoad[idx] = true;
-	//	m_i32FrameX = m_arrImages[m_ImgIndex].GetWidth();
-	//	m_i32FrameY = m_arrImages[m_ImgIndex].GetHeight();
-	//}
+	}*/
 }
 
 void CDebuggingToolSpinSensorDlg::OnBtnClickedFile2()
 {
 	const int idx = 1;
+
 	LoadImages(idx);
+	//if (false == m_bSingleMode)
+	//{
+	//	
+	//}
+	//else
+	//{
+	////폴더선택
+	//	/*const int count = 5;
+	//	for (int i = 0; i < count; ++i)
+	//	{
+	//		PasteImage(m_arrImages[idx], idx, i);
+	//	}*/
 
-	/*const int count = 5;
-	for (int i = 0; i < count; ++i)
-	{
-		PasteImage(m_arrImages[idx], idx, i);
-	}*/
-
-	PasteImage(m_arrImages[idx], idx, 2);
+	//	
+	//}
 }
 
 
@@ -542,4 +598,50 @@ void CDebuggingToolSpinSensorDlg::OnBnClickedButton3()
 void CDebuggingToolSpinSensorDlg::OnBnClickedButton4()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+void CDebuggingToolSpinSensorDlg::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	switch (nChar)
+	{
+	case VK_UP://위
+	{
+
+		AfxMessageBox(_T("VK_UP"));
+		//for (CImagePopupDlg* popup : m_vecImagePopup)
+		//{
+		//	if (popup)
+		//	{
+		//		if (popup->CheckFilePathArray() && popup->CheckImageLoadArray())
+		//		{
+		//			popup->StartImageSwitching();
+
+		//		}
+		//	}
+		//	else
+		//	{
+		//		//CString targetName = popup->GetTargetImgName();
+		//	}
+		//}
+	}
+	break;
+	case VK_DOWN://아래
+	{
+
+	}
+	break;
+	case VK_RIGHT://오른쪽
+	{
+
+	}
+	break;
+	case VK_LEFT://왼쪽
+	{
+
+	}
+	break;
+	}
+
+	CDialogEx::OnKeyUp(nChar, nRepCnt, nFlags);
 }

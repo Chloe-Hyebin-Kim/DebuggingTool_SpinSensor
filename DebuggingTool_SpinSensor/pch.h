@@ -63,6 +63,7 @@ using namespace std;
 #define TRAJ_IMAGE_WIDTH		2048
 #define TRAJ_IMAGE_HEIGHT		660
 
+#define MAXIMAGECOUNT 5
 #define BALL_IMAGE_WIDTH 100
 #define BALL_IMAGE_HEIGHT 100
 #define BALL_IMAGE_SIZE 10000
